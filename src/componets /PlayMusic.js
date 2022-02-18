@@ -1,20 +1,20 @@
-import { useEffect, useRef} from "react"
+// import ReactAudioPlayer from "react-audio-player";
+import { useEffect, useRef} from "react";
+
 
 const PlayMusic = ({currentTrack, playPause, toggle}) => {
 
+    const currentSong = currentTrack.hub.actions[1].uri;
     const audioElement = new Audio();
 
     // audioElement.preload = "none";
-
+    // const player = new Audio()
 
     const audioRef = useRef(audioElement);
-
-    // console.log(currentTrack);
-
     
     useEffect( () => {
         
-        const currentSong = currentTrack.hub.actions[1].uri;
+        
 
         if (playPause === false && audioRef.current.currentTime === 0) {
             audioRef.current.src = currentSong;
@@ -39,25 +39,26 @@ const PlayMusic = ({currentTrack, playPause, toggle}) => {
             audioRef.current.play();
             console.log(playPause);
         }
-    }, [toggle, currentTrack, playPause]);
+    }, [toggle, currentSong, playPause]);
 
-    // useEffect(() => {
-    //     if (isPlaying) {
-    //         audioRef.current.play();
-    //     } else {
-    //         audioRef.current.pause();
-    //     }
-    // }, [isPlaying]);
+    // <ReactAudioPlayer
+    //     ref={player}
+    //     src="www.hello.com"
+    // />
 
-   
-
+    // console.log(player);
+    
     // console.log(audioElement)
 
     return (
         <>
-            {/* <audio src={props.currentTrack} autoPlay controls />    */}
+            {/* <audio src={currentSong} autoPlay controls />    */}
+            
+        
         </>
+    
     )
+    
 }
 
 export default PlayMusic;
