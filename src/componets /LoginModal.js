@@ -1,7 +1,8 @@
 import { useSpring, animated } from "react-spring"
-import { RiCloseCircleFill } from "react-icons/ri"
-import { FaHeadphonesAlt } from 'react-icons/fa'
+import { RiCloseFill } from "react-icons/ri"
+import TextField from '@mui/material/TextField';
 // import { FcGoogle } from 'react-icons/fc'
+import { GiSoundWaves } from 'react-icons/gi'
 
 const LoginModal = ({ email, setEmail, password, setPassword, handleLogin, handleSignUp, emailError, passwordError, hasAccount, setHasAccount, showModal, setShowModal,googleLogin }) => {
 
@@ -17,8 +18,21 @@ const LoginModal = ({ email, setEmail, password, setPassword, handleLogin, handl
         opacity: showModal ? 1 : 0,
         transform: showModal ? `opacity(0%)` : `opacity(100%)`, 
         
+        
+        
     });
 
+    const emailProps = {
+        name: "email",
+        // placeholder: "Search For Music"
+        type: "email",
+    }
+    
+    const passwordProps = {
+        name: "password",
+        // placeholder: "Search For Music"
+        type: "password"
+    }
 
 
     return (
@@ -33,29 +47,21 @@ const LoginModal = ({ email, setEmail, password, setPassword, handleLogin, handl
 
                                 <>
                                     <div className="modalHeader">
-                                        <p><span><FaHeadphonesAlt /></span>Amplify</p>
+                                        <p>.WAVV//<span><GiSoundWaves /></span></p>
                                         <div className="closeIcon" onClick={ () => setShowModal(false) }>
-                                            <RiCloseCircleFill />
+                                            <RiCloseFill />
                                         </div>
                                     </div>
-
-                                    {/* <div className="providerLogin">
-                                        <button onClick={googleLogin}>
-                                            <FcGoogle />
-                                        </button>
-                                    </div> */}
 
                                     <div className="loginInfo">
                                         
                                         <div className="inputField">
-                                            <label htmlFor="userEmail"> Email </label>
-                                            <input type="email" id="email" required onChange={ (e) => setEmail(e.target.value)} value={email}/>
+                                            <TextField label="Email" onChange={(e) => setEmail(e.target.value)} value={email} inputProps={emailProps} variant="filled" />
                                             <p className="errorMessage">{emailError}</p>
                                         </div>
 
                                         <div className="inputField">
-                                            <label htmlFor="userPassword"> Password </label>
-                                            <input type="password" id="password" required onChange={ (e) => setPassword(e.target.value)} value={password}/>
+                                            <TextField label="Password" onChange={(e) => setPassword(e.target.value)} value={password} inputProps={passwordProps} variant="filled" />
                                             <p className="errorMessage">{passwordError}</p>
                                         </div>
 

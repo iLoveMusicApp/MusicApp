@@ -4,18 +4,29 @@ import LoginModal from './componets /LoginModal';
 import Header from './componets /Header';
 import Footer from './componets /Footer';
 import Contacts from './componets /Contacts';
+import LikedMusic from './componets /LikedMusic';
+import { toast } from 'react-hot-toast';
+
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
 // React Hooks
-import {  useEffect, useState, useCallback  } from 'react';
+import { useState, useEffect } from 'react';
 
 
 // Firebase
-import fire from './firebase.js';
+// import fire from './firebase.js';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { ref, set, onValue, remove } from 'firebase/database';
+import { auth, db  } from './firebase'
+
 
 function App() {
+
+  // All States 
   
   const [user, setUser ] = useState("")
   const [email, setEmail ] = useState("")
+
   const [password, setPassword ] = useState("")
   const [emailError, setEmailError ] = useState("")
   const [passwordError, setPasswordError ] = useState("")
@@ -31,6 +42,32 @@ function App() {
 
   const [hamburgerMenu, setHamburgerMenu] = useState(false);
 
+  // for liked page
+  const [likedPageVisible, setLikedPageVisible] = useState(false);
+  const [likedSongs, setLikedSongs ] = useState([]);
+
+  // Navigate hook for react router dom
+  let navigate = useNavigate();
+
+
+  // firebase functions
+  const writeToDb = (event) => {
+    toast('Liked');
+    set(ref(db, 'users/' + event.track.key), {
+      name: email,
+      song: event,
+    })
+  };
+  
+  const handleRemove = (event) => {
+    const dbBookAddress = ref(db, 'users/' + event.key);
+    remove(dbBookAddress);
+  };
+  
+
+  
+
+// clear all feilds
   const clearInputs = () => {
     setEmail("");
     setPassword("");
@@ -43,16 +80,19 @@ function App() {
     setPasswordError("");
   };
 
+  // handles the auth sign in for email and password 
   const handleLogin = (e) => {
     clearErrors();
-    e.preventDefault()
-    fire
-      .auth()
-      .signInWithEmailAndPassword(email, password)
-      .catch((error)=> {
-        switch(error.code) {
-          case "auth/invalid-email": 
-          case "auth/user-disabled": 
+    e.preventDefault();
+    signInWithEmailAndPassword(auth, email, password)
+    .then( (userCr) => {
+      setUser(userCr);
+      setShowModal(false);
+    })
+    .catch( (error) => {
+      switch (error.code) {
+          case "auth/invalid-email":
+          case "auth/user-disabled":
           case "auth/user-not-found":
             setEmailError(error.message);
             break;
@@ -61,18 +101,20 @@ function App() {
             break;
 
             default:
-        }
+        };
       });
   };
-
+  
+  // handles the auth and creats new user using email and password 
   const handleSignUp = (e) => {
     clearErrors();
-    e.preventDefault()
-    fire
-      .auth()
-      .createUserWithEmailAndPassword(email, password)
-      .catch((error) => {
-        switch (error.code) {
+    e.preventDefault();
+    createUserWithEmailAndPassword(auth, email, password)
+    .then( (userCr) => {
+      setUser(userCr);
+    })
+    .catch( (error) => {
+      switch (error.code) {
           case "auth/email-already-in-use":
           case "auth/invalid-email":
             setEmailError(error.message);
@@ -82,60 +124,105 @@ function App() {
             break;
 
           default:
-        }
-      });
+        };
+    });
   };
 
+// logs user out of application
   const handleLogout = () => {
-    fire.auth().signOut();
-    clearInputs(); 
+    signOut(auth);
+    clearInputs();
     setStopMusic(true);
     setHamburgerMenu(false);
-  }
-  
-  
-  // const googleLogin = () => {
-  //   const provider = fire.auth.GoogleAuthProvider();
-  //   fire.auth().signInWithPopup(provider)
-  //   .then( (e)=>{
-  //     console.log(e)
-  //   })
-  //   .catch( (err)=> {
-  //     console.log(err)
-  //   })
-  // }
+    navigate('/')
+  };
 
-  const authListener = useCallback( () => {
-    fire
-    .auth()
-    .onAuthStateChanged((user) => {
+
+// listener for user state changes 
+  useEffect( () => {
+    onAuthStateChanged(auth, (user) => {
       if (user) {
-        clearInputs();
-        setUser(user);
+        setUser(user)
+        // clearInputs();
         setShowModal(false);
         setStopMusic(false);
-      } 
-      else {
-        setUser("")
-        // setShowModal(true)
-      }
-    })
-  },[])  
 
-  useEffect( () => {
-    authListener();
-  },[authListener]);
+        // loads fire base db when user logs in 
+        const CountRef = ref(db, 'users/')
+        onValue(CountRef, (snapshot => {
+          const data = snapshot.val()
+          const newArray = []
+
+          if (data !== null) {
+            for (let key in data) {
+             newArray.push({key: key, song: data[key].song.track})
+            }
+          }
+          setLikedSongs(newArray)
+        }))
+      } else {
+        setUser("")
+      }
+    });
+  },[user]);
+
 
   return (
     <div className="App">
+
       <header className="App-header">
-          <Header handleLogout={handleLogout} setShowModal={setShowModal} user={user} setHasAccount={setHasAccount} hamburgerMenu={hamburgerMenu} setHamburgerMenu={setHamburgerMenu} />
+          <Header 
+          handleLogout={handleLogout} 
+          setShowModal={setShowModal} 
+          user={user} 
+          setHasAccount={setHasAccount} 
+          hamburgerMenu={hamburgerMenu} 
+          setHamburgerMenu={setHamburgerMenu}
+          likedPageVisible={likedPageVisible}
+          setLikedPageVisible={setLikedPageVisible}
+          // setStopMusic={setStopMusic}
+          />
       </header>
 
       <main>
-        <GetMusic user={user} setShowModal={setShowModal} searchTerm={searchTerm} setSearchTerm={setSearchTerm} userInput={userInput} setUserInput={setUserInput} stopMusic={stopMusic} />
-      
-          <LoginModal email={email} setEmail={setEmail} password={password} setPassword={setPassword} handleLogin={handleLogin} handleSignUp={handleSignUp} emailError={emailError} passwordError={passwordError} hasAccount={hasAccount} setHasAccount={setHasAccount} user={user} showModal={showModal} setShowModal={setShowModal} />
+        <Routes>
+          <Route path='/' element={ <GetMusic
+            user={user}
+            setShowModal={setShowModal}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            userInput={userInput}
+            setUserInput={setUserInput}
+            stopMusic={stopMusic}
+            writeToDb={writeToDb}
+            />
+          }/>
+
+          <Route path='/liked' element={ <LikedMusic 
+          likedSongs={likedSongs}
+          handleRemove={handleRemove}
+          
+            />
+          }/>
+        </Routes>
+       
+        <LoginModal 
+        handleLogin={handleLogin}
+        email={email} 
+        setEmail={setEmail}
+        password={password} 
+        setPassword={setPassword}  
+        handleSignUp={handleSignUp} 
+        emailError={emailError} 
+        passwordError={passwordError} 
+        hasAccount={hasAccount} 
+        setHasAccount={setHasAccount} 
+        user={user} 
+        showModal={showModal} 
+        setShowModal={setShowModal} 
+        // setAccountName={setAccountName}
+        // accountName={accountName}
+        />
 
       </main>
 
