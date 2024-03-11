@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { BsFillPlayCircleFill, BsFillPauseCircleFill, BsFillSkipForwardCircleFill, BsFillSkipBackwardCircleFill } from "react-icons/bs";
+import { FaPlay, FaPause } from "react-icons/fa";
+import { IoPlaySkipBack, IoPlaySkipForward } from "react-icons/io5";
 import { HiVolumeUp, HiVolumeOff } from "react-icons/hi";
 import { Slider } from "@mui/material";
 
@@ -44,7 +45,7 @@ const MediaPlayer = ({ audioRef, playPause, setPlayPause, currentTrack, setCurre
     const timeCalc = (value) => {
         let seconds = Math.floor(value % 60);
         let minutes = Math.floor((value / 60) % 60);
-
+        
         if (seconds < 10) {
             seconds = "0" + seconds;
         };
@@ -52,8 +53,10 @@ const MediaPlayer = ({ audioRef, playPause, setPlayPause, currentTrack, setCurre
         return minutes + ":" + seconds;
     };
 
- console.log(audioRef.current.volume)
+//  console.log(audioRef.current.volume)
 
+    // controls the mute state for scrub
+    // console.log(velocity)
     useEffect(() => {
         audioRef.current.volume = velocity / 100;
   
@@ -65,14 +68,17 @@ const MediaPlayer = ({ audioRef, playPause, setPlayPause, currentTrack, setCurre
 
     }, [audioRef, velocity])
 
+    // function to handle volume change 
     const volumeChange = (event) => {
         setVelocity(event.target.value)
     }
 
+    // function to handle change
     const muteTrack = () => {
         setMute(!mute)
     }
 
+    // handles volume if button is used and not scrub
     useEffect(() => {
         if (mute === true) {
             audioRef.current.volume = 0;
@@ -98,13 +104,13 @@ const MediaPlayer = ({ audioRef, playPause, setPlayPause, currentTrack, setCurre
                 <div className="mediaButtons">
 
                     <button onClick={() => prevTrack()}>
-                        <BsFillSkipBackwardCircleFill />
+                        <IoPlaySkipBack />
                     </button>
                         <button className="playPause" onClick={() => togglePlayPause()}>
-                            {playPause ? <BsFillPlayCircleFill /> : <BsFillPauseCircleFill />}
+                            {playPause ? <FaPlay /> : <FaPause />}
                         </button>
                     <button onClick={() => nextTrack()}>
-                        <BsFillSkipForwardCircleFill />
+                        <IoPlaySkipForward />
                     </button>
 
                 </div>
@@ -118,8 +124,16 @@ const MediaPlayer = ({ audioRef, playPause, setPlayPause, currentTrack, setCurre
                         }
                     </p>
                     <label className="sr-only" htmlFor="trackScrub">Track Scrub</label>
-                    {/* <input className="progress" id="trackScrub" type="range" value={trackProgress} step="1" min="0" max={trackDuration ? trackDuration : `${trackDuration}`} onChange={(event) => onScrub(event.target.value)} defaultValue="0" onMouseUp={onScrubEnd} onKeyUp={onScrubEnd} /> */}
-                        <Slider className='slider' step={0.0001} value={trackProgress} onChange={(e) => onScrub(e.target.value)} onMouseUp={onScrubEnd} onKeyUp={onScrubEnd} max={trackDuration}  />
+
+                        <Slider 
+                        className='slider' 
+                        step={0.0001} 
+                        value={trackProgress} 
+                        onChange={(e) => onScrub(e.target.value)} 
+                        onMouseUp={onScrubEnd} 
+                        onKeyUp={onScrubEnd} 
+                        max={trackDuration}  
+                        />
                     
                     <p> -
                         {trackDuration ?
@@ -143,14 +157,24 @@ const MediaPlayer = ({ audioRef, playPause, setPlayPause, currentTrack, setCurre
                         <HiVolumeUp />
                     </button>
                 }
+
+                {/* volume */}
                 <label className="sr-only" htmlFor="volumeInput">Volume</label>
-                {/* <input type="range" id="volumeInput" step="1" min="0" max="100" onChange={volumeChange} value={mute ? 0 : velocity} /> */}
-                    <Slider className='volumeRange slider' step={1} min={0} max={100} onChange={volumeChange} value={mute ? 0 : velocity} />
+
+                    <Slider 
+                    className='volumeRange slider' 
+                    step={1} 
+                    min={0} 
+                    max={100} 
+                    onChange={volumeChange} 
+                    value={mute ? 0 : velocity} 
+                    />
 
             </div>
             
             </div>
 
+                {/* on media queries the track title ges to the bottom */}
             <div className="trackTitle">
                 <div className="mediaTimeBottom">
                     <p>
@@ -161,8 +185,16 @@ const MediaPlayer = ({ audioRef, playPause, setPlayPause, currentTrack, setCurre
                         }
                     </p>
                     <label className="sr-only" htmlFor="trackScrub">Track Scrub</label>
-                    {/* <input className="progress" id="trackScrub" type="range" value={trackProgress} step="1" min="0" max={trackDuration ? trackDuration : `${trackDuration}`} onChange={(event) => onScrub(event.target.value)} onMouseUp={onScrubEnd} onKeyUp={onScrubEnd} /> */}
-                    <Slider className='slider' step={1} value={trackProgress} onChange={(e) => onScrub(e.target.value)} onMouseUp={onScrubEnd} onKeyUp={onScrubEnd} max={trackDuration} />
+
+                    <Slider 
+                    className='slider' 
+                    step={1} 
+                    value={trackProgress} 
+                    onChange={(e) => onScrub(e.target.value)} 
+                    onMouseUp={onScrubEnd} 
+                    onKeyUp={onScrubEnd} 
+                    max={trackDuration} 
+                    />
                     <p>
                         {trackDuration ?
                             timeCalc(trackDuration)

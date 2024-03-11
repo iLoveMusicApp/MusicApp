@@ -7,21 +7,18 @@ import "swiper/css/bundle";
 import toast, { Toaster } from "react-hot-toast";
 import TextField from '@mui/material/TextField';
 
-// import { BiError } from "react-icons/bi"
-
-// import { SwiperStyles } 
+import { AiFillHeart } from "react-icons/ai"
 
 import SwiperCore, { EffectCoverflow, Pagination, Virtual, Navigation } from "swiper/core";
 SwiperCore.use([EffectCoverflow, Pagination, Virtual, Navigation]);
 
 
 
-const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, setUserInput, stopMusic }) => {
+const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, setUserInput, stopMusic, writeToDb }) => {
 
 
 
     // states 
-
 
     const [songList, setSongList] = useState([]);
 
@@ -43,14 +40,12 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
 
     const sliderRef = useRef();
 
+    // console.log(sliderRef)
+
     const inputProps = {
         name: "Search",
         placeholder: "Search For Music"
     }
-
-    
-
-    
 
     // resetLandingPage(setSearchTerm);
 
@@ -71,18 +66,23 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
 
         if (event === currentTrack) {
             setPlayPause(!playPause);
+
         } else {
             setCurrentTrack(event);
             setPlayPause(false);
+
         }
 
     } // this determines whether we pause/play the current track or play a new track
 
+
+    // once new set of tracks are render resets the swiiper to 0 index 
     useEffect(()=> {
         if (updatedList === true) {
              sliderRef.current.swiper.slideTo(0) 
         }
-    },[updatedList])
+    },[updatedList]) 
+
 
 
     // axios call
@@ -110,23 +110,13 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
                     // 'x-rapidapi-host': 'shazam.p.rapidapi.com',
                     // 'x-rapidapi-key': '4e6f74d025msh36947ff6c814c7cp11d0c1jsnc6f9a4f67eae'
 
-                    // Imtiaz key #1
-                    // 'x-rapidapi-host': 'shazam.p.rapidapi.com',
-                    // 'x-rapidapi-key': 'cd2f669506mshbacf9d2b7d2169ep15ef89jsnb7d5c64abf1d'
-
-                    // Imtiaz key#2
-                    // 'x-rapidapi-host': 'shazam.p.rapidapi.com',
-                    // 'x-rapidapi-key': 'cd74434576msh2f5cc3adcc9d925p11959ejsnfe4483674b62' 
                 }
             }).then((response) => {
-                // setErrorPage(false)
                 setSongList(response.data.tracks.hits);
                 setUpdatedList(true); // has to be set after the songList since this is an async event
                 setPageChange(true);
             }).catch(function (error) {
-            //   console.log(toast("Hello"))
                 setSearchTerm("");
-                // setErrorPage(true);
                 toast("Please Enter A Valid Input");
               
             });
@@ -142,7 +132,7 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
             <Toaster 
                 position="top-center"
                 toastOptions={{
-                    duration: 4000,
+                    duration: 2500,
                     style: {
                         margin: '250px 0 0 0',
                         background: '#fbb034',
@@ -153,9 +143,15 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
 
             {user ?
                 <form className="searchBar" onSubmit={handleSubmit}>
-                    {/* <label className="sr-only" htmlFor="search"> Search For Music </label>
-                    <input placeholder="Search For Music" type="text" id="search" onChange={handleChange} value={userInput} /> */}
-                    <TextField label="Search" onChange={handleChange} value={userInput} inputProps={inputProps}/>
+
+                    <TextField 
+                    label="Search" 
+                    onChange={handleChange} 
+                    value={userInput} 
+                    inputProps={inputProps} 
+                    variant="filled"
+                    />
+                    
                     <button> Search </button>
                 </form>
 
@@ -163,16 +159,6 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
 
                 null
             }
-
-            {/* {errorPage ? 
-                <div className="errorImg">
-                    <BiError />
-                </div>
-            :
-
-            null
-
-            } */}
 
             {searchTerm ?
                 <>
@@ -199,13 +185,6 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
                             pagination={{
                                 clickable: true,
                             }}
-
-                            
-
-                            // virtual={true}
-                            // modules={[EffectCoverflow, Pagination, Virtual, Navigation]}
-
-                        // className="mySwiper"
                         >
                         
                             
@@ -215,10 +194,17 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
 
                                     return (
                                         <SwiperSlide key={song.track.key}>
-                                            <div className="artContainer" onClick={() => handlePlayPause(song.track)} key={song.track.key}>
-                                                <img src={song.track.images.coverart} alt={`Coverart of ${song.track.title}`} />
-                                                <h3>{song.track.title}</h3>
-                                                <h4>{song.track.subtitle}</h4>
+                                            <div className="artContainer">
+                                                <img src={song.track.images.coverart} alt={`Coverart of ${song.track.title}`} onClick={() => handlePlayPause(song.track)} key={song.track.key} />
+                                                <div className="songInfoContainer">
+                                                    <div>
+                                                        <h3>{song.track.title}</h3>
+                                                        <h4>{song.track.subtitle}</h4>
+                                                    </div>
+                                                    <button onClick={() => writeToDb(song)} >
+                                                        <AiFillHeart />
+                                                    </button>
+                                                </div>
                                                 
                                                 
                                             </div>
@@ -232,15 +218,25 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
                         </Swiper>
                                 
                     </div>
-
-                    <Pages pageIndex={pageIndex} setPageIndex={setPageIndex} sliderRef={sliderRef} coverflowIndex={coverflowIndex} setCoverflowIndex={setCoverflowIndex} songList={songList} updatedList={updatedList} pageChange={pageChange} setPageChange={setPageChange} />
+                    {/* component that changes the pages */}
+                    <Pages 
+                    pageIndex={pageIndex} 
+                    setPageIndex={setPageIndex} 
+                    sliderRef={sliderRef} 
+                    coverflowIndex={coverflowIndex} 
+                    setCoverflowIndex={setCoverflowIndex} 
+                    songList={songList} 
+                    updatedList={updatedList} 
+                    pageChange={pageChange} 
+                    setPageChange={setPageChange} 
+                    />
                 </>
                 :
 
 
                 <div className="tagLine">
-                    <h1><span>Amplify</span>Your Music</h1>
-                    <p>Expand your musical horizon</p>
+                    <h1>.WAVV// Music.</h1>
+                    <p>Search For The New Wave</p>
                     {!user ?
                         <button onClick={() => setShowModal(true)}>Get Started</button>
                         :
@@ -251,7 +247,25 @@ const GetMusic = ({ user, setShowModal, searchTerm, setSearchTerm, userInput, se
             }
 
 
-            {currentTrack ? <PlayMusic currentTrack={currentTrack} setCurrentTrack={setCurrentTrack} playPause={playPause} setPlayPause={setPlayPause} songList={songList} pageIndex={pageIndex} setPageIndex={setPageIndex} setUpdatedList={setUpdatedList} updatedList={updatedList} updatedPage={updatedPage} setUpdatedPage={setUpdatedPage} searchTerm={searchTerm} user={user} stopMusic={stopMusic} coverflowIndex={coverflowIndex} setCoverflowIndex={setCoverflowIndex} sliderRef={sliderRef} /> : null}
+            {currentTrack ? <PlayMusic 
+            currentTrack={currentTrack} 
+            setCurrentTrack={setCurrentTrack} 
+            playPause={playPause} 
+            setPlayPause={setPlayPause} 
+            songList={songList} 
+            pageIndex={pageIndex} 
+            setPageIndex={setPageIndex} 
+            setUpdatedList={setUpdatedList} 
+            updatedList={updatedList} 
+            updatedPage={updatedPage} 
+            setUpdatedPage={setUpdatedPage} 
+            searchTerm={searchTerm} 
+            user={user} 
+            stopMusic={stopMusic} 
+            coverflowIndex={coverflowIndex} 
+            setCoverflowIndex={setCoverflowIndex} 
+            sliderRef={sliderRef} /> 
+            : null}
             {/* if current track exists then pass values into playMusic component. Otherwise return null */}
 
         </div>

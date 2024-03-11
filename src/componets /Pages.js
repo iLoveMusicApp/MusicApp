@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { BsFillArrowLeftCircleFill, BsFillArrowRightCircleFill } from "react-icons/bs"
+// import { BsFillArrowLeftCircleFill, BsFillArrowRightCircleFill } from "react-icons/bs"
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa"
 
 const Pages = ({ pageIndex, setPageIndex, sliderRef, songList, setPageChange, pageChange }) => {
 
@@ -30,6 +31,7 @@ const Pages = ({ pageIndex, setPageIndex, sliderRef, songList, setPageChange, pa
             
         }
         
+        // determines wheater to start on 0 index or last index oncee page changees 
         useEffect( ()=> {
             if (sliderReset === 1 && pageChange === true) {
                 sliderRef.current.swiper.slideTo(0);
@@ -41,11 +43,11 @@ const Pages = ({ pageIndex, setPageIndex, sliderRef, songList, setPageChange, pa
         <section>
             <div className="pagesBtnContainer wrapper">
                 {!disabled ? 
-                    <button 
+                    <button className="pagePrev"
                     onClick={prevPage}
                     >
                 
-                        <BsFillArrowLeftCircleFill />
+                        <FaArrowLeft />
                     
                 
                     </button>
@@ -54,14 +56,14 @@ const Pages = ({ pageIndex, setPageIndex, sliderRef, songList, setPageChange, pa
                        className="disabledBtn"
                     >
 
-                        <BsFillArrowLeftCircleFill />
+                        <FaArrowLeft />
 
 
                     </button>
 
                 }
                 <button className="pageNext" onClick={nextPage}>
-                    <BsFillArrowRightCircleFill />
+                    <FaArrowRight />
                 </button>
             </div>
         </section>
